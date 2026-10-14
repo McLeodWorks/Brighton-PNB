@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brighton Constabulary — Co-Op MDT & Officer Notebook</title>
+  <style>
+    :root {
+      --bg-darkest: #070b12;
+      --bg-card: #0f172a;
+      --bg-surface: #1e293b;
+      --border-dark: #334155;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-darkest); color: var(--text-main); min-height: 100vh; padding-bottom: 50px; }
+    
+    .battenburg-bar {
+      height: 10px;
+      width: 100%;
+      background: repeating-linear-gradient(45deg, #facc15 0, #facc15 25px, #1d4ed8 25px, #1d4ed8 50px);
+    }
+    
+    header {
+      background-color: var(--bg-card);
+      border-bottom: 1px solid var(--border-dark);
+      padding: 14px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge-title { display: flex; align-items: center; gap: 12px; }
+    .badge-icon {
+      background: #1e3a8a;
+      border: 2px solid var(--accent-cyan);
+      color: #fff;
+      font-weight: 900;
+      font-size: 14px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      letter-spacing: 1px;
+    }
+    .header-text h1 { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .header-text p { font-size: 12px; color: var(--text-muted); }
+
+    .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #1e293b;
+      border: 1px solid var(--border-dark);
+      color: var(--text-muted);
+    }
+    .status-pill.online { background: #064e3b; border-color: var(--accent-green); color: #6ee7b7; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #64748b; }
+    .status-pill.online .status-dot { background: #10b981; box-shadow: 0 0 8px #10b981; }
+
+    .btn {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border-dark);
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn:hover { background: #334155; }
+    .btn-primary { background: var(--accent-blue); border-color: #2563eb; color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-success { background: var(--accent-green); border-color: #059669; color: #fff; }
+    .btn-danger { background: var(--accent-red); border-color: #dc2626; color: #fff; }
+    .btn-amber { background: var(--accent-amber); border-color: #d97706; color: #000; }
+
+    .officer-select-bar {
+      background: #090e17;
+      padding: 8px 20px;
+      border-bottom: 1px solid var(--border-dark);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+    .officer-switch { display: flex; gap: 8px; align-items: center; }
+    .officer-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dark);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .officer-btn.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-cyan); font-weight: bold; }
+
+    .tab-bar {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-dark);
+      display: flex;
+      overflow-x: auto;
+      padding: 0 16px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .tab-btn:hover { color: var(--text-main); }
+    .tab-btn.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+
+    .container { max-width: 1400px; margin: 20px auto; padding: 0 16px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--accent-cyan);
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-dark);
+      padding-bottom: 8px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+
+    .form-group { margin-bottom: 12px; }
+    .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+    .form-input, .form-textarea {
+      width: 100%;
+      background: var(--bg-darkest);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      padding: 8px 10px;
+      color: var(--text-main);
+      font-size: 12px;
+    }
+    .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--accent-cyan); }
+    .form-textarea { resize: vertical; min-height: 65px; }
+
+    /* Chips Box */
+    .chips-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      min-height: 38px;
+      background: var(--bg-darkest);
+      padding: 8px;
+      border: 1px dashed var(--border-dark);
+      border-radius: 4px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .chip-ticket { background: #1e3a8a; border: 1px solid #3b82f6; color: #93c5fd; }
+    .chip-arrest { background: #7f1d1d; border: 1px solid #ef4444; color: #fca5a5; }
+    .chip-tow-badge { background: #78350f; color: #fde68a; border: 1px solid #f59e0b; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 900; }
+    .chip-close { cursor: pointer; font-size: 14px; font-weight: bold; margin-left: 4px; }
+    .chip-close:hover { color: #fff; }
+
+    .ledger-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+    .ledger-table th, .ledger-table td {
+      border: 1px solid var(--border-dark);
+      padding: 8px 10px;
+      text-align: left;
+    }
+    .ledger-table th { background: var(--bg-surface); color: var(--text-muted); font-size: 10px; text-transform: uppercase; }
+    .ledger-table tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+
+    .caution-quote {
+      background: #172554;
+      border-left: 4px solid var(--accent-blue);
+      padding: 12px 16px;
+      font-style: italic;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      color: #93c5fd;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.82);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--accent-cyan);
+      border-radius: 8px;
+      width: 100%;
+      max-width: 600px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-card h3 { font-size: 16px; margin-bottom: 12px; color: var(--accent-cyan); text-transform: uppercase; }
+
+    /* Picker Catalog Modal */
+    .catalog-modal { max-width: 760px; display: flex; flex-direction: column; max-height: 88vh; }
+    .catalog-search-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+    .catalog-filter-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--border-dark); }
+    .catalog-filter-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-dark);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .catalog-filter-btn.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-cyan); }
+    .catalog-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
+    
+    .offence-row {
+      background: var(--bg-darkest);
+      border: 1px solid var(--border-dark);
+      border-radius: 6px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: border-color 0.15s ease;
+    }
+    .offence-row:hover { border-color: var(--accent-cyan); }
+    .offence-info h4 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .offence-info p { font-size: 11px; color: var(--text-muted); }
+    .offence-badges { display: flex; gap: 6px; align-items: center; }
+    .badge-tag { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px; }
+    .badge-ticket { background: #1e3a8a; color: #93c5fd; }
+    .badge-arrest { background: #7f1d1d; color: #fca5a5; }
+    .badge-tow { background: #78350f; color: #fde68a; }
+
+    @media print {
+      body { background: #fff; color: #000; }
+      header, .battenburg-bar, .tab-bar, .officer-select-bar, .btn, .modal-overlay { display: none !important; }
+      .container { max-width: 100%; margin: 0; padding: 0; }
+      .card { border: 1px solid #000; background: #fff; color: #000; break-inside: avoid; margin-bottom: 15px; }
+      .card-title { color: #000; border-bottom: 1px solid #000; }
+      .ledger-table th, .ledger-table td { border-color: #000; color: #000; }
+      .tab-content { display: block !important; }
+      #tab-xbox, #tab-radar, #tab-caution { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="battenburg-bar"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="badge-title">
+      <div class="badge-icon">BPD</div>
+      <div class="header-text">
+        <h1>Brighton Constabulary — Co-Op MDT</h1>
+        <p>Tactical Terminal & Joint Officer Notebook (Xbox / Patrol Sim)</p>
+      </div>
+    </div>
+    <div class="header-controls">
+      <div class="status-pill" id="syncStatus">
+        <div class="status-dot"></div>
+        <span id="syncText">OFFLINE (STANDALONE)</span>
+      </div>
+      <button class="btn btn-primary" onclick="openConnectModal()">🔗 Connect Live Room</button>
+      <button class="btn btn-success" onclick="sendRadioPing()">📡 Audio Ping</button>
+      <button class="btn" onclick="window.print()">🖨️ Print PNB</button>
+    </div>
+  </header>
+
+  <!-- Officer Profile Switcher -->
+  <div class="officer-select-bar">
+    <div class="officer-switch">
+      <span style="color: var(--text-muted); font-weight: bold;">ACTIVE CONSOLE:</span>
+      <button class="officer-btn active" id="btnJoe" onclick="switchOfficer('PC Joe McLeod (4412)')">PC Joe McLeod (4412)</button>
+      <button class="officer-btn" id="btnIan" onclick="switchOfficer('PC Ian McLeod (3318)')">PC Ian McLeod (3318)</button>
+    </div>
+    <div style="color: var(--text-muted);">
+      CONDUCT: <strong style="color: var(--accent-green);">100 CP</strong> | REPUTATION: <strong style="color: var(--accent-cyan);">SP ON DUTY</strong>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" onclick="showTab(event, 'callout')">🚨 Joint Callout (Joe & Ian)</button>
+    <button class="tab-btn" onclick="showTab(event, 'pnb')">📖 PNB Shift Ledger (<span id="ledgerCount">0</span>)</button>
+    <button class="tab-btn" onclick="showTab(event, 'cad')">💻 Police CAD & Plate Check</button>
+    <button class="tab-btn" onclick="showTab(event, 'radar')">🎯 Radar & Sobriety Lab</button>
+    <button class="tab-btn" onclick="showTab(event, 'bolo')">📻 Active BOLOs</button>
+    <button class="tab-btn" onclick="showTab(event, 'caution')">⚖️ UK PACE Caution</button>
+    <button class="tab-btn" onclick="showTab(event, 'xbox')">🎮 Xbox Controller & CP Guide</button>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container">
+
+    <!-- 1. JOINT CALLOUT -->
+    <div id="tab-callout" class="tab-content active">
+      <div class="grid-2">
+
+        <!-- Officer 1: Joe -->
+        <div class="card" style="border-top: 4px solid var(--accent-cyan);">
+          <div class="card-title">
+            <span>🛡️ Driver 1 / Lead (PC Joe McLeod)</span>
+            <button class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="fileSingleOfficer('joe')">File Joe's Report 📤</button>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Subject / Driver Name</label>
+              <input type="text" id="joe_name" class="form-input" placeholder="e.g. Greta Weber">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vehicle Registration (VRM)</label>
+              <input type="text" id="joe_vrm" class="form-input" placeholder="e.g. 4UDE91">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Driver Verbal Statement / Claim</label>
+            <textarea id="joe_statement" class="form-textarea" placeholder="Driver's version of events..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Witness 1 Observation</label>
+            <textarea id="joe_witness" class="form-textarea" placeholder="Witness account taken by Joe..."></textarea>
+          </div>
+
+          <!-- Easy Offences Selector Button -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin: 12px 0 6px 0;">
+            <label class="form-label" style="margin: 0;">Active Citations & Charges (Joe):</label>
+            <button class="btn btn-primary" style="padding: 4px 10px; font-size: 11px;" onclick="openOffencePicker('joe')">
+              ➕ Add Violations / Charges
+            </button>
+          </div>
+
+          <div class="chips-box" id="joe_chips"></div>
+        </div>
+
+        <!-- Officer 2: Ian -->
+        <div class="card" style="border-top: 4px solid var(--accent-blue);">
+          <div class="card-title">
+            <span>🛡️ Driver 2 / Partner (PC Ian McLeod)</span>
+            <button class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="fileSingleOfficer('ian')">File Ian's Report 📤</button>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Subject / Driver Name</label>
+              <input type="text" id="ian_name" class="form-input" placeholder="e.g. Tyler Mason">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vehicle Registration (VRM)</label>
+              <input type="text" id="ian_vrm" class="form-input" placeholder="e.g. WX-901">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Driver Verbal Statement / Claim</label>
+            <textarea id="ian_statement" class="form-textarea" placeholder="Driver's version of events..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Witness 2 Observation</label>
+            <textarea id="ian_witness" class="form-textarea" placeholder="Witness account taken by Ian..."></textarea>
+          </div>
+
+          <!-- Easy Offences Selector Button -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin: 12px 0 6px 0;">
+            <label class="form-label" style="margin: 0;">Active Citations & Charges (Ian):</label>
+            <button class="btn btn-primary" style="padding: 4px 10px; font-size: 11px;" onclick="openOffencePicker('ian')">
+              ➕ Add Violations / Charges
+            </button>
+          </div>
+
+          <div class="chips-box" id="ian_chips"></div>
+        </div>
+
+      </div>
+
+      <!-- Action Button for Joint submission -->
+      <div style="text-align: center; margin-top: 10px;">
+        <button class="btn btn-success" style="padding: 10px 24px; font-size: 14px;" onclick="compileBothToLedger()">
+          📑 Submit Joint Callout (Both Officers) to Shared Shift Ledger (+SP)
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. PNB SHIFT LEDGER -->
+    <div id="tab-pnb" class="tab-content">
+      <div class="card">
+        <div class="card-title">
+          <span>📖 Official Brighton Constabulary Field Ledger</span>
+          <button class="btn btn-danger" onclick="clearLedger()">Clear Shift Entries</button>
+        </div>
+        <table class="ledger-table" id="pnbTable">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Officer</th>
+              <th>Subject</th>
+              <th>VRM</th>
+              <th>Citations / Charges</th>
+              <th>Tow?</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="ledgerBody">
+            <!-- Dynamic entries -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3. POLICE CAD & PLATE CHECK -->
+    <div id="tab-cad" class="tab-content">
+      <div class="card">
+        <div class="card-title">💻 Brighton Police CAD Database Search</div>
+        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+          <input type="text" id="cadQuery" class="form-input" style="max-width: 400px;" placeholder="Enter Citizen Name or Licence Plate (VRM)...">
+          <button class="btn btn-primary" onclick="searchCAD()">🔍 Run CAD Query</button>
+          <button class="btn" onclick="generateRandomCAD()">🎲 Random Subject</button>
+        </div>
+        
+        <div id="cadResult" style="display: none; background: #000; border: 1px solid var(--accent-cyan); border-radius: 6px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-dark); padding-bottom: 10px; margin-bottom: 10px;">
+            <h2 id="cadName" style="font-size: 18px; color: var(--accent-cyan);">ARTHUR VANCE</h2>
+            <span id="cadStatus" class="chip chip-arrest">ACTIVE FELONY WARRANT</span>
+          </div>
+          <div class="grid-3" style="font-size: 12px; line-height: 1.8;">
+            <div><strong>DOB:</strong> <span id="cadDOB">14/05/1988</span></div>
+            <div><strong>Licence Status:</strong> <span id="cadDL">VALID</span></div>
+            <div><strong>Insurance:</strong> <span id="cadIns">EXPIRED</span></div>
+            <div><strong>Vehicle Plate:</strong> <span id="cadPlate">BPD-441</span></div>
+            <div><strong>Vehicle Status:</strong> <span id="cadVehStatus">NOT STOLEN</span></div>
+            <div><strong>Weapon Permit:</strong> <span id="cadGun">NONE</span></div>
+          </div>
+          <div style="margin-top: 14px; display: flex; gap: 8px;">
+            <button class="btn btn-primary" onclick="importCADToCallout('joe')">Import to Joe's Form</button>
+            <button class="btn btn-primary" onclick="importCADToCallout('ian')">Import to Ian's Form</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. RADAR & SOBRIETY LAB -->
+    <div id="tab-radar" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">🎯 Handheld Radar / Speed Gun Calibrator</div>
+          <div class="form-group">
+            <label class="form-label">Zone Posted Speed Limit</label>
+            <select id="radarLimit" class="form-input" onchange="calcSpeed()">
+              <option value="25">25 MPH (Residential / School Zone)</option>
+              <option value="35" selected>35 MPH (Downtown Commercial)</option>
+              <option value="45">45 MPH (Suburban Boulevard)</option>
+              <option value="55">55 MPH (Highway Arterial)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Clocked Speed: <span id="speedValue" style="color: var(--accent-cyan); font-weight: bold;">48 MPH</span></label>
+            <input type="range" id="speedSlider" min="20" max="100" value="48" style="width: 100%;" oninput="calcSpeed()">
+          </div>
+          <div id="speedResult" style="padding: 10px; border-radius: 4px; font-weight: bold; font-size: 13px; text-align: center; background: #3b82f6; color: #fff;">
+            CITATION: 13 MPH OVER LIMIT ($150 FINE)
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🧪 Chemical Sobriety Diagnostics (BAC & Saliva)</div>
+          <div class="form-group">
+            <label class="form-label">Breathalyzer Reading (Legal Limit 0.00% Commercial / 0.08% Private)</label>
+            <input type="range" id="bacSlider" min="0" max="25" value="0" style="width: 100%;" oninput="calcBAC()">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px;">
+              <span>0.00% (Clean)</span>
+              <strong id="bacText" style="color: var(--accent-green); font-size: 14px;">0.00% BAC</strong>
+              <span>0.25% (Extreme)</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Saliva Drug Wipe Test</label>
+            <select id="drugWipe" class="form-input" onchange="calcBAC()">
+              <option value="CLEAN">Clean / Negative</option>
+              <option value="THC">Cannabis (THC) Positive</option>
+              <option value="AMP">Amphetamines Positive</option>
+              <option value="COC">Cocaine Positive</option>
+              <option value="HER">Opioids / Heroin Positive</option>
+              <option value="LSD">LSD Positive</option>
+              <option value="MDMA">MDMA Positive</option>
+              <option value="PSI">Psilocybin Positive</option>
+            </select>
+          </div>
+          <div id="sobrietyResult" style="padding: 10px; border-radius: 4px; font-weight: bold; font-size: 13px; text-align: center; background: #064e3b; color: #6ee7b7;">
+            DRIVER SOBER — NO DUI ACTION JUSTIFIED
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. ACTIVE BOLOS -->
+    <div id="tab-bolo" class="tab-content">
+      <div class="card">
+        <div class="card-title">
+          <span>📻 Brighton Police APB & BOLO Broadcasts</span>
+          <button class="btn btn-amber" onclick="openBOLOModal()">+ Broadcast New BOLO</button>
+        </div>
+        <div class="grid-3" id="boloGrid">
+          <div class="card" style="margin: 0; border-color: var(--accent-amber);">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--accent-amber); font-weight: bold;">
+              <span>STOLEN VEHICLE</span>
+              <span>10-99 ACTIVE</span>
+            </div>
+            <h3 style="font-size: 15px; margin: 8px 0;">Red Cruiser SUV (VRM: LV-426)</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Suspect fled armed with a switchblade knife. Heading toward Melting Pot.</p>
+            <button class="btn btn-success" style="width: 100%;" onclick="dismissBOLO(this)">Mark Apprehended (+100 SP)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. UK PACE CAUTION -->
+    <div id="tab-caution" class="tab-content">
+      <div class="card">
+        <div class="card-title">⚖️ Statutory Police Caution & Custody Protections</div>
+        <div class="caution-quote">
+          "You do not have to say anything. But it may harm your defence if you do not mention when questioned something which you later rely on in court. Anything you do say may be given in evidence."
+        </div>
+        <div class="grid-3" style="font-size: 12px; line-height: 1.6;">
+          <div>
+            <h4 style="color: var(--accent-cyan); margin-bottom: 6px;">3 Statutory Rights</h4>
+            <p>1. Free legal advice from solicitor.<br>2. Right to have someone informed of arrest.<br>3. Right to consult PACE codes.</p>
+          </div>
+          <div>
+            <h4 style="color: var(--accent-cyan); margin-bottom: 6px;">Code G Arrest Necessity</h4>
+            <p>• Ascertain suspect's name/address.<br>• Prevent harm or property damage.<br>• Prompt & effective investigation.</p>
+          </div>
+          <div>
+            <h4 style="color: var(--accent-cyan); margin-bottom: 6px;">E.L.B.O.W. Notebook Standard</h4>
+            <p><strong>E</strong>: No Erasures.<br><strong>L</strong>: No Leaves torn out.<br><strong>B</strong>: No Blank spaces.<br><strong>O</strong>: No Overwriting.<br><strong>W</strong>: Written in ink.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. XBOX CONTROLLER & CP GUIDE -->
+    <div id="tab-xbox" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">🎮 Xbox Controller Bindings</div>
+          <table class="ledger-table">
+            <tr><th>Button</th><th>On Foot</th><th>Cruiser Driving</th></tr>
+            <tr><td><strong>RT</strong></td><td>Interact / Draw tool</td><td>Accelerate</td></tr>
+            <tr><td><strong>LT</strong></td><td>Aim tool / Zoom</td><td>Brake / Reverse</td></tr>
+            <tr><td><strong>RB</strong></td><td>Radial item menu</td><td>Emergency lights & sirens</td></tr>
+            <tr><td><strong>LB</strong></td><td>Dispatch radio</td><td>Horn / Blip siren</td></tr>
+            <tr><td><strong>A</strong></td><td>Confirm / Talk</td><td>Handbrake</td></tr>
+            <tr><td><strong>B</strong></td><td>Cancel / Crouch</td><td>Exit vehicle (Hold)</td></tr>
+            <tr><td><strong>D-Pad Up</strong></td><td>Open CAD computer</td><td>In-car radar / CAD</td></tr>
+            <tr><td><strong>D-Pad L/R</strong></td><td>Cycle tool inventory</td><td>Turn signal indicators</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-title">🛡️ Critical Conduct Point (CP) Protection</div>
+          <div style="font-size: 12px; line-height: 1.8;">
+            <p>❌ <strong style="color: var(--accent-red);">Never search without cause:</strong> Frisking requires suspicious twitches, visible red-eye, or open alcohol in plain view.</p>
+            <p>❌ <strong style="color: var(--accent-red);">Never arrest for petty infractions:</strong> Jaywalking, expired meters, and littering are fines only.</p>
+            <p>⚠️ <strong style="color: var(--accent-amber);">Tow sequence matters:</strong> Always issue the ticket or arrest driver <em>before</em> calling the tow truck via the radio wheel.</p>
+            <p>🔫 <strong style="color: var(--accent-red);">Use of deadly force:</strong> Drawing your service pistol on an unarmed runner causes instant shift termination!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- OFFENCES & CHARGES PICKER MODAL (WIKI ACCREDITED) -->
+  <div class="modal-overlay" id="pickerModal">
+    <div class="modal-card catalog-modal">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h3 id="pickerTargetTitle" style="margin: 0;">➕ Add Violations & Offences (Joe)</h3>
+        <button class="btn btn-danger" style="padding: 3px 8px; font-size: 11px;" onclick="closeOffencePicker()">✕ Close</button>
+      </div>
+
+      <!-- Live Search Box -->
+      <div class="catalog-search-bar">
+        <input type="text" id="offenceSearch" class="form-input" placeholder="🔍 Quick search (e.g. 'speed', 'gun', 'fake', 'dui', 'tow', 'litter')..." oninput="filterOffences()">
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <div class="catalog-filter-tabs">
+        <button class="catalog-filter-btn active" onclick="setCategoryFilter('ALL', this)">All</button>
+        <button class="catalog-filter-btn" onclick="setCategoryFilter('PARKING', this)">Parking [TOW]</button>
+        <button class="catalog-filter-btn" onclick="setCategoryFilter('MOVING', this)">Moving / Traffic</button>
+        <button class="catalog-filter-btn" onclick="setCategoryFilter('EQUIPMENT', this)">Equipment & Defects</button>
+        <button class="catalog-filter-btn" onclick="setCategoryFilter('DOCS', this)">Documents & Fraud</button>
+        <button class="catalog-filter-btn" onclick="setCategoryFilter('MISDEMEANOR', this)">Misdemeanors</button>
+        <button class="catalog-filter-btn" onclick="setCategoryFilter('DUI', this)">DUI (8 Substances)</button>
+        <button class="catalog-filter-btn" onclick="setCategoryFilter('WEAPONS', this)">Weapons & Drugs</button>
+        <button class="catalog-filter-btn" onclick="setCategoryFilter('FELONY', this)">Felonies</button>
+        <button class="catalog-filter-btn" onclick="setCategoryFilter('DLC', this)">Highway / Commercial DLC</button>
+      </div>
+
+      <!-- Offence List -->
+      <div class="catalog-list" id="offenceCatalog">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Connect Modal -->
+  <div class="modal-overlay" id="connectModal">
+    <div class="modal-card">
+      <h3>🔗 Connect Live Co-Op Room</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+        Enter any shared room name below (e.g. <code>mcleod-patrol</code>). Both you and Ian enter the same code and click <strong>Join Patrol Room</strong>.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Shared Room Name</label>
+        <input type="text" id="roomInput" class="form-input" value="mcleod-patrol">
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button class="btn btn-primary" style="flex: 1;" onclick="joinRoom()">Join Patrol Room</button>
+        <button class="btn btn-danger" onclick="closeConnectModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Case File Details Modal -->
+  <div class="modal-overlay" id="caseModal">
+    <div class="modal-card">
+      <h3 id="caseModalTitle">📂 Incident Case File</h3>
+      <div id="caseModalContent" style="font-size: 12px; line-height: 1.8; color: var(--text-main);"></div>
+      <div style="margin-top: 16px; text-align: right;">
+        <button class="btn btn-primary" onclick="closeCaseModal()">Close File</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOLO Modal -->
+  <div class="modal-overlay" id="boloModal">
+    <div class="modal-card">
+      <h3>📻 Broadcast New APB / BOLO</h3>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select id="boloCat" class="form-input">
+          <option>STOLEN VEHICLE</option>
+          <option>WANTED FELON</option>
+          <option>HIT & RUN SUSPECT</option>
+          <option>ARMED ROBBERY</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Headline / Suspect Description</label>
+        <input type="text" id="boloTitle" class="form-input" placeholder="e.g. Black Sedan (VRM: NY-990)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Details / Last Sighted</label>
+        <textarea id="boloDesc" class="form-textarea" placeholder="Last seen near Downtown speeding..."></textarea>
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 12px;">
+        <button class="btn btn-amber" style="flex: 1;" onclick="submitBOLO()">📡 Add to Active Board</button>
+        <button class="btn btn-danger" onclick="closeBOLOModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // COMPLETE OFFICIAL WIKI OFFENCES DATABASE
+    const OFFENCES_DB = [
+      // PARKING VIOLATIONS & TOWS
+      { id: "P1", cat: "PARKING", name: "Expired Parking Meter", desc: "Vehicle parked at an expired meter (Red sign). Handicap exempt.", type: "ticket", cost: "$20", tow: false },
+      { id: "P2", cat: "PARKING", name: "Expired License Plate", desc: "Vehicle plate registration is past expiration date.", type: "ticket", cost: "$100", tow: true },
+      { id: "P3", cat: "PARKING", name: "Parked on Sidewalk", desc: "One or two tires parked over the pedestrian curb.", type: "ticket", cost: "$40", tow: true },
+      { id: "P4", cat: "PARKING", name: "Too Far Into Street", desc: "Vehicle parked too far out from the curb into active road lane.", type: "ticket", cost: "$30", tow: false },
+      { id: "P5", cat: "PARKING", name: "Facing Wrong Direction", desc: "Parked against the legal flow of traffic.", type: "ticket", cost: "$30", tow: false },
+      { id: "P6", cat: "PARKING", name: "Blocking Fire Hydrant", desc: "Parked inside designated fire hydrant clearance.", type: "ticket", cost: "$100", tow: true },
+      { id: "P7", cat: "PARKING", name: "Parked in Bus Stop", desc: "Vehicle parked in marked public transit bus zone.", type: "ticket", cost: "$100", tow: true },
+      { id: "P8", cat: "PARKING", name: "Taxi Stand Parking", desc: "Private vehicle in taxi zone (Exempt: 'SH!FT' vehicles).", type: "ticket", cost: "$80", tow: true },
+      { id: "P9", cat: "PARKING", name: "Handicap Zone Without Placard", desc: "Unauthorised parking in disabled person bay.", type: "ticket", cost: "$150", tow: true },
+      { id: "P10", cat: "PARKING", name: "Emergency Access Lane", desc: "Blocking designated emergency response route.", type: "ticket", cost: "$150", tow: true },
+      { id: "P11", cat: "PARKING", name: "Street Cleaning Restriction", desc: "Parked during scheduled municipal cleaning hours.", type: "ticket", cost: "$60", tow: true },
+
+      // MOVING & TRAFFIC
+      { id: "T1", cat: "MOVING", name: "Speeding (1-10 MPH Over)", desc: "Exceeding posted speed limit by up to 10 MPH.", type: "ticket", cost: "$50", tow: false },
+      { id: "T2", cat: "MOVING", name: "Speeding (11-25 MPH Over)", desc: "Aggravated speeding 11 to 25 MPH above limit.", type: "ticket", cost: "$150", tow: false },
+      { id: "T3", cat: "MOVING", name: "Ignoring Red Light", desc: "Proceeding through intersection during red signal.", type: "ticket", cost: "$100", tow: false },
+      { id: "T4", cat: "MOVING", name: "Ignoring Stop Sign", desc: "Failing to come to complete stop at posted stop sign.", type: "ticket", cost: "$75", tow: false },
+      { id: "T5", cat: "MOVING", name: "Not Using Turn Signal", desc: "Turning or changing lanes without indicator.", type: "ticket", cost: "$35", tow: false },
+      { id: "T6", cat: "MOVING", name: "Reckless Driving (26+ MPH Over)", desc: "Dangerous speed exceeding limit by 26+ MPH.", type: "arrest", cost: "ARREST", tow: true },
+
+      // VEHICLE EQUIPMENT & MODS
+      { id: "E1", cat: "EQUIPMENT", name: "Broken Headlight at Night", desc: "One or both headlights unlit/broken during darkness.", type: "ticket", cost: "$60", tow: false },
+      { id: "E2", cat: "EQUIPMENT", name: "Broken Taillight", desc: "One or both rear taillights damaged or non-functional.", type: "ticket", cost: "$60", tow: false },
+      { id: "E3", cat: "EQUIPMENT", name: "Damaged / Broken Windshield", desc: "Shattered or cracked front glass impeding vision.", type: "ticket", cost: "$80", tow: false },
+      { id: "E4", cat: "EQUIPMENT", name: "Illegal Dark Window Tint", desc: "Excessively tinted vehicle windows.", type: "ticket", cost: "$100", tow: false },
+      { id: "E5", cat: "EQUIPMENT", name: "Illegal Underglow Neon", desc: "Coloured decorative chassis lighting active on highway.", type: "ticket", cost: "$100", tow: false },
+      { id: "E6", cat: "EQUIPMENT", name: "Excessively Loud Engine / Exhaust", desc: "Modified exhaust exceeding legal noise thresholds.", type: "ticket", cost: "$90", tow: false },
+      { id: "E7", cat: "EQUIPMENT", name: "Smoking Tailpipe", desc: "Heavy emissions smoke from vehicle exhaust.", type: "ticket", cost: "$60", tow: false },
+
+      // BACKGROUND CHECKS & DOCUMENT FRAUD
+      { id: "D1", cat: "DOCS", name: "Expired Driver's License", desc: "License date is past validity.", type: "ticket", cost: "$100", tow: false },
+      { id: "D2", cat: "DOCS", name: "No Valid Insurance", desc: "Vehicle has no current insurance coverage.", type: "ticket", cost: "$150", tow: false },
+      { id: "D3", cat: "DOCS", name: "Missing Driver's License", desc: "Driving without ever having been issued a license.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "D4", cat: "DOCS", name: "Fake ID", desc: "Presenting a forged ID document not found on police computer.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "D5", cat: "DOCS", name: "Stolen ID", desc: "Presenting another person's ID (photo/name mismatch).", type: "arrest", cost: "ARREST", tow: false },
+      { id: "D6", cat: "DOCS", name: "Fake Insurance Document", desc: "Document claims valid but police computer shows expired.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "D7", cat: "DOCS", name: "Fake / Stolen License Plate", desc: "Counterfeit plate or plate registered to different vehicle.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "D8", cat: "DOCS", name: "Operating Stolen Car", desc: "Driving a vehicle currently flagged as stolen.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "D9", cat: "DOCS", name: "Open Felony Warrant", desc: "Active judicial warrant for arrest on system.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "D10", cat: "DOCS", name: "Expired Visa (Contraband DLC)", desc: "Travelling within Franklin on expired travel visa.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "D11", cat: "DOCS", name: "No Visa (Contraband DLC)", desc: "Travelling within Franklin with zero visa status.", type: "arrest", cost: "ARREST", tow: false },
+
+      // MISDEMEANORS & CITIZEN OFFENCES
+      { id: "M1", cat: "MISDEMEANOR", name: "Littering", desc: "Dropping garbage or refuse onto street or sidewalk.", type: "ticket", cost: "$25", tow: false },
+      { id: "M2", cat: "MISDEMEANOR", name: "Jaywalking", desc: "Crossing street away from designated pedestrian crosswalk.", type: "ticket", cost: "$20", tow: false },
+      { id: "M3", cat: "MISDEMEANOR", name: "Public Intoxication / Drinking", desc: "Consuming alcohol in public space with open container in hand.", type: "ticket", cost: "$300", tow: false },
+      { id: "M4", cat: "MISDEMEANOR", name: "Graffiti Vandalism", desc: "Spraying illegal spraypaint or tagging property.", type: "ticket", cost: "$1,000", tow: false },
+      { id: "M5", cat: "MISDEMEANOR", name: "Property Vandalism", desc: "Unlawful destruction of private/public structures.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "M6", cat: "MISDEMEANOR", name: "Illegal Camping / Encampment", desc: "Setting up tent or temporary dwelling in public spaces.", type: "ticket", cost: "$50", tow: false },
+      { id: "M7", cat: "MISDEMEANOR", name: "Wallet Theft (Larceny)", desc: "Pickpocketing or unlawful theft of personal property.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "M8", cat: "MISDEMEANOR", name: "Robbery", desc: "Unlawful taking of property of higher value by force/threat.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "M9", cat: "MISDEMEANOR", name: "Car Theft", desc: "Attempting to break into or steal a stationary vehicle.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "M10", cat: "MISDEMEANOR", name: "Fleeing Police / Resisting", desc: "Running or fleeing in vehicle when held for detainment.", type: "arrest", cost: "ARREST", tow: true },
+
+      // DUI IMPAIRMENT (ALL 8 WIKI SUBSTANCES)
+      { id: "DUI1", cat: "DUI", name: "DUI: Alcohol (BAC ≥ 0.08% / Trucks > 0.00%)", desc: "Operating motor vehicle while intoxicated by alcohol.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "DUI2", cat: "DUI", name: "DUI: Cannabis (THC Positive)", desc: "Impaired driving with positive saliva drug test for THC.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "DUI3", cat: "DUI", name: "DUI: Cocaine Positive", desc: "Operating motor vehicle under the influence of cocaine.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "DUI4", cat: "DUI", name: "DUI: Amphetamines Positive", desc: "Operating motor vehicle under the influence of amphetamines.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "DUI5", cat: "DUI", name: "DUI: Opioids / Heroin Positive", desc: "Operating motor vehicle under the influence of heroin.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "DUI6", cat: "DUI", name: "DUI: Psilocybin Positive", desc: "Operating motor vehicle under the influence of magic mushrooms.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "DUI7", cat: "DUI", name: "DUI: LSD Positive", desc: "Operating motor vehicle under the influence of LSD.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "DUI8", cat: "DUI", name: "DUI: MDMA Positive", desc: "Operating motor vehicle under the influence of ecstasy/MDMA.", type: "arrest", cost: "ARREST", tow: true },
+
+      // WEAPONS & NARCOTICS POSSESSION
+      { id: "W1", cat: "WEAPONS", name: "Carrying Gun Without Permit", desc: "Possessing firearm without valid gun permit endorsement on ID.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "W2", cat: "WEAPONS", name: "Brass Knuckles Without CCW Permit", desc: "Carrying brass knuckles without concealed carry weapon permit.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "W3", cat: "WEAPONS", name: "Ninja Stars Without CCW Permit", desc: "Possessing shuriken/ninja stars without CCW permit.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "W4", cat: "WEAPONS", name: "Carrying a Switchblade", desc: "Possessing illegal switchblade knife (strictly banned in Brighton).", type: "arrest", cost: "ARREST", tow: false },
+      { id: "W5", cat: "WEAPONS", name: "Carrying a Push Dagger", desc: "Possessing illegal push dagger style knife.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "W6", cat: "WEAPONS", name: "Carrying Black Jacks", desc: "Possessing illegal black jack weighted bludgeon.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "W7", cat: "WEAPONS", name: "Possession of Gunpowder", desc: "Carrying excessive explosive gunpowder quantities.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "W8", cat: "WEAPONS", name: "Possession of Narcotics (>1oz Cannabis / Any Hard Drugs)", desc: "Possessing controlled narcotic substances.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "W9", cat: "WEAPONS", name: "Selling Narcotics (Drug Dealing)", desc: "Unlawful street distribution or sale of narcotics.", type: "arrest", cost: "ARREST", tow: true },
+
+      // MAJOR FELONIES
+      { id: "F1", cat: "FELONY", name: "Aggravated Assault", desc: "Physical attack on an individual causing serious bodily harm.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "F2", cat: "FELONY", name: "Domestic Violence", desc: "Physical assault against a partner/family member.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "F3", cat: "FELONY", name: "Assault on Police Officer", desc: "Physical violence or battery against a law enforcement officer.", type: "arrest", cost: "ARREST", tow: false },
+      { id: "F4", cat: "FELONY", name: "Attempted Murder", desc: "Deliberate attempt to end the life of an officer or citizen.", type: "arrest", cost: "ARREST", tow: false },
+
+      // HIGHWAY PATROL & COMMERCIAL VEHICLE EXPANSION
+      { id: "DLC1", cat: "DLC", name: "Overloaded / Overweight Vehicle", desc: "Commercial vehicle weight exceeds highway scales limit.", type: "ticket", cost: "$500", tow: true },
+      { id: "DLC2", cat: "DLC", name: "Transporting Stolen Goods", desc: "Hauling reported stolen cargo in commercial transport.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "DLC3", cat: "DLC", name: "Transporting Counterfeit Articles", desc: "Hauling forged/counterfeit apparel or goods.", type: "arrest", cost: "ARREST", tow: true },
+      { id: "DLC4", cat: "DLC", name: "Cargo Contraband Smuggling", desc: "Smuggling illegal narcotics, exotic goods, or weapons in truck.", type: "arrest", cost: "ARREST", tow: true }
+    ];
+
+    let activeOfficer = "PC Joe McLeod (4412)";
+    let chips = { joe: [], ian: [] };
+    let activePickerTarget = "joe";
+    let activeFilterCategory = "ALL";
+    let submittedReports = [];
+    let audioCtx = null;
+    let ws = null;
+    let currentRoom = "";
+    let clientId = "user_" + Math.random().toString(36).substring(2, 9);
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function playChirp(freq = 800, dur = 0.08) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + dur);
+      } catch (e) {}
+    }
+
+    function switchOfficer(name) {
+      activeOfficer = name;
+      document.getElementById('btnJoe').classList.toggle('active', name.includes('4412'));
+      document.getElementById('btnIan').classList.toggle('active', name.includes('3318'));
+      playChirp(600, 0.05);
+    }
+
+    function showTab(e, id) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      e.target.classList.add('active');
+      document.getElementById('tab-' + id).classList.add('active');
+    }
+
+    // OFFENCE PICKER MODAL LOGIC
+    function openOffencePicker(target) {
+      activePickerTarget = target;
+      const officerLabel = target === 'joe' ? "PC Joe McLeod" : "PC Ian McLeod";
+      document.getElementById('pickerTargetTitle').innerText = `➕ Add Violations & Offences (${officerLabel})`;
+      document.getElementById('offenceSearch').value = "";
+      activeFilterCategory = "ALL";
+      document.querySelectorAll('.catalog-filter-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === 0);
+      });
+      renderOffenceCatalog();
+      document.getElementById('pickerModal').classList.add('active');
+    }
+
+    function closeOffencePicker() {
+      document.getElementById('pickerModal').classList.remove('active');
+    }
+
+    function setCategoryFilter(cat, btn) {
+      activeFilterCategory = cat;
+      document.querySelectorAll('.catalog-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderOffenceCatalog();
+    }
+
+    function filterOffences() {
+      renderOffenceCatalog();
+    }
+
+    function renderOffenceCatalog() {
+      const query = document.getElementById('offenceSearch').value.trim().toLowerCase();
+      const container = document.getElementById('offenceCatalog');
+      container.innerHTML = "";
+
+      const filtered = OFFENCES_DB.filter(item => {
+        const matchesCat = activeFilterCategory === "ALL" || item.cat === activeFilterCategory;
+        const matchesQuery = !query || 
+          item.name.toLowerCase().includes(query) || 
+          item.desc.toLowerCase().includes(query) ||
+          item.cat.toLowerCase().includes(query) ||
+          (query === "tow" && item.tow) ||
+          (query === "arrest" && item.type === "arrest");
+        return matchesCat && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted);">No matching violations found. Try another search term.</div>';
+        return;
+      }
+
+      filtered.forEach(item => {
+        const row = document.createElement('div');
+        row.className = "offence-row";
+
+        const badgeType = item.type === "arrest" 
+          ? '<span class="badge-tag badge-arrest">ARREST</span>' 
+          : `<span class="badge-tag badge-ticket">TICKET (${item.cost})</span>`;
+        const badgeTow = item.tow ? '<span class="badge-tag badge-tow">TOW JUSTIFIED</span>' : '';
+
+        // Check if already selected in target station
+        const isSelected = chips[activePickerTarget].some(c => c.name === item.name);
+
+        row.innerHTML = `
+          <div class="offence-info">
+            <h4>${item.name}</h4>
+            <p>${item.desc}</p>
+          </div>
+          <div class="offence-badges">
+            ${badgeType}
+            ${badgeTow}
+            <button class="btn ${isSelected ? 'btn-danger' : 'btn-primary'}" style="padding: 4px 10px; font-size: 11px;" onclick="toggleOffenceFromPicker('${item.id}')">
+              ${isSelected ? '✕ Remove' : '➕ Add'}
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function toggleOffenceFromPicker(offenceId) {
+      const item = OFFENCES_DB.find(o => o.id === offenceId);
+      if (!item) return;
+
+      const idx = chips[activePickerTarget].findIndex(c => c.name === item.name);
+      if (idx >= 0) {
+        chips[activePickerTarget].splice(idx, 1);
+        playChirp(400, 0.05);
+      } else {
+        chips[activePickerTarget].push({
+          name: item.name,
+          cost: item.cost,
+          tow: item.tow,
+          type: item.type
+        });
+        playChirp(800, 0.05);
+      }
+      renderChips(activePickerTarget);
+      renderOffenceCatalog();
+    }
+
+    function removeChip(station, idx) {
+      chips[station].splice(idx, 1);
+      renderChips(station);
+      playChirp(400, 0.05);
+    }
+
+    function renderChips(station) {
+      const box = document.getElementById(station + '_chips');
+      box.innerHTML = '';
+      if (chips[station].length === 0) {
+        box.innerHTML = '<span style="color: var(--text-muted); font-size: 11px; align-self: center;">No citations or arrest charges added yet.</span>';
+        return;
+      }
+      chips[station].forEach((c, idx) => {
+        const span = document.createElement('span');
+        let cls = c.type === 'arrest' ? 'chip-arrest' : 'chip-ticket';
+        span.className = `chip ${cls}`;
+        span.innerHTML = `
+          <span>${c.name} <strong>(${c.cost})</strong></span>
+          ${c.tow ? '<span class="chip-tow-badge">TOW</span>' : ''}
+          <span class="chip-close" onclick="removeChip('${station}', ${idx})">✕</span>
+        `;
+        box.appendChild(span);
+      });
+    }
+
+    // REPORT SUBMISSION & PNB SYNC
+    function fileSingleOfficer(station) {
+      const name = document.getElementById(station + '_name').value.trim();
+      const vrm = document.getElementById(station + '_vrm').value.trim();
+      const statement = document.getElementById(station + '_statement').value.trim();
+      const witness = document.getElementById(station + '_witness').value.trim();
+      const officerName = station === 'joe' ? 'PC Joe McLeod' : 'PC Ian McLeod';
+
+      if (!name && chips[station].length === 0) {
+        return alert("Please enter at least a subject name or select a charge before filing.");
+      }
+
+      const report = {
+        id: "rep_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        officer: officerName,
+        subject: name || "Unidentified",
+        vrm: vrm || "N/A",
+        statement: statement || "No verbal statement offered.",
+        witness: witness || "No witness observation recorded.",
+        chips: [...chips[station]],
+        hasTow: chips[station].some(c => c.tow),
+        hasArrest: chips[station].some(c => c.type === 'arrest')
+      };
+
+      // Add to local ledger
+      renderNewReport(report);
+
+      // Broadcast to partner over WebSocket
+      sendRelay({ type: "NEW_REPORT", sender: clientId, report: report });
+
+      // Reset that officer's station form
+      document.getElementById(station + '_name').value = '';
+      document.getElementById(station + '_vrm').value = '';
+      document.getElementById(station + '_statement').value = '';
+      document.getElementById(station + '_witness').value = '';
+      chips[station] = [];
+      renderChips(station);
+
+      playChirp(900, 0.15);
+      alert(`${officerName}'s Report Filed & Submitted to Shared Ledger!`);
+    }
+
+    function compileBothToLedger() {
+      const joeName = document.getElementById('joe_name').value.trim();
+      const ianName = document.getElementById('ian_name').value.trim();
+
+      if (!joeName && !ianName && chips.joe.length === 0 && chips.ian.length === 0) {
+        return alert("Please enter at least one driver's name or charges before submitting.");
+      }
+
+      if (joeName || chips.joe.length > 0) fileSingleOfficer('joe');
+      if (ianName || chips.ian.length > 0) fileSingleOfficer('ian');
+    }
+
+    function renderNewReport(rep) {
+      submittedReports.push(rep);
+      document.getElementById('ledgerCount').innerText = submittedReports.length;
+
+      const body = document.getElementById('ledgerBody');
+      const row = document.createElement('tr');
+      const towBadge = rep.hasTow ? '<strong style="color: var(--accent-amber);">YES (TOW)</strong>' : 'NO';
+      const statusBadge = rep.hasArrest ? '<span class="chip chip-arrest" style="font-size: 10px;">ARREST</span>' : '<span class="chip chip-ticket" style="font-size: 10px;">CITED</span>';
+      const chargesList = rep.chips.map(c => c.name).join(', ') || 'Field Investigation';
+
+      row.innerHTML = `
+        <td>${rep.time}</td>
+        <td><strong>${rep.officer}</strong></td>
+        <td><strong>${rep.subject}</strong></td>
+        <td><code>${rep.vrm}</code></td>
+        <td>${chargesList}</td>
+        <td>${towBadge}</td>
+        <td>${statusBadge}</td>
+        <td><button class="btn btn-primary" style="padding: 2px 8px; font-size: 11px;" onclick="viewCaseFile('${rep.id}')">📂 View File</button></td>
+      `;
+      body.prepend(row);
+    }
+
+    function viewCaseFile(id) {
+      const rep = submittedReports.find(r => r.id === id);
+      if (!rep) return;
+
+      document.getElementById('caseModalTitle').innerText = `📂 Case File: ${rep.subject} (${rep.vrm})`;
+      
+      let chargesHtml = '';
+      if (rep.chips.length === 0) {
+        chargesHtml = '<em>No statutory charges or tickets recorded.</em>';
+      } else {
+        chargesHtml = rep.chips.map(c => `
+          <div style="margin-bottom: 5px;">
+            • <strong>${c.name}</strong> (${c.cost}) ${c.tow ? '<strong style="color: var(--accent-amber);">[TOW AUTHORIZED]</strong>' : ''}
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('caseModalContent').innerHTML = `
+        <div style="background: #000; border: 1px solid var(--border-dark); padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span><strong>Reporting Officer:</strong> ${rep.officer}</span>
+            <span><strong>Time Logged:</strong> ${rep.time}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span><strong>Subject:</strong> ${rep.subject}</span>
+            <span><strong>Vehicle Plate:</strong> <code>${rep.vrm}</code></span>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <h4 style="color: var(--accent-cyan); text-transform: uppercase; font-size: 11px; margin-bottom: 4px;">Driver / Suspect Statement</h4>
+          <div style="background: var(--bg-surface); padding: 8px 10px; border-radius: 4px; font-style: italic;">
+            "${rep.statement}"
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <h4 style="color: var(--accent-cyan); text-transform: uppercase; font-size: 11px; margin-bottom: 4px;">Officer & Witness Observations</h4>
+          <div style="background: var(--bg-surface); padding: 8px 10px; border-radius: 4px;">
+            ${rep.witness}
+          </div>
+        </div>
+
+        <div>
+          <h4 style="color: var(--accent-cyan); text-transform: uppercase; font-size: 11px; margin-bottom: 6px;">Charges & Legal Dispositions</h4>
+          <div style="background: var(--bg-surface); padding: 8px 10px; border-radius: 4px;">
+            ${chargesHtml}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('caseModal').classList.add('active');
+    }
+
+    function closeCaseModal() {
+      document.getElementById('caseModal').classList.remove('active');
+    }
+
+    function clearLedger() {
+      if (confirm('Clear all entries from this shift?')) {
+        document.getElementById('ledgerBody').innerHTML = '';
+        submittedReports = [];
+        document.getElementById('ledgerCount').innerText = '0';
+      }
+    }
+
+    // NETWORKING (WEBSOCKET RELAY)
+    function openConnectModal() { document.getElementById('connectModal').classList.add('active'); }
+    function closeConnectModal() { document.getElementById('connectModal').classList.remove('active'); }
+
+    function joinRoom() {
+      const room = document.getElementById('roomInput').value.trim().toLowerCase() || "mcleod-patrol";
+      currentRoom = room;
+      if (ws) ws.close();
+
+      ws = new WebSocket("wss://ntfy.sh/" + encodeURIComponent(room) + "/ws");
+
+      ws.onopen = () => {
+        const pill = document.getElementById('syncStatus');
+        pill.className = 'status-pill online';
+        document.getElementById('syncText').innerText = `ONLINE (${room.toUpperCase()})`;
+        closeConnectModal();
+        playChirp(880, 0.15);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (!msg.message) return;
+          const payload = JSON.parse(msg.message);
+
+          if (payload.sender === clientId) return;
+
+          if (payload.type === "PING") {
+            playChirp(880, 0.2);
+          } else if (payload.type === "BOLO") {
+            addBOLOCard(payload.bolo);
+            playChirp(500, 0.2);
+          } else if (payload.type === "NEW_REPORT") {
+            renderNewReport(payload.report);
+            playChirp(900, 0.15);
+          }
+        } catch (e) {}
+      };
+
+      ws.onerror = () => {
+        document.getElementById('syncText').innerText = "CONNECTION FAILED";
+      };
+
+      ws.onclose = () => {
+        document.getElementById('syncStatus').className = 'status-pill';
+        document.getElementById('syncText').innerText = "DISCONNECTED";
+      };
+    }
+
+    function sendRelay(obj) {
+      if (!currentRoom) return;
+      fetch("https://ntfy.sh/" + encodeURIComponent(currentRoom), {
+        method: "POST",
+        body: JSON.stringify(obj)
+      }).catch(e => {});
+    }
+
+    function sendRadioPing() {
+      playChirp(880, 0.1);
+      sendRelay({ type: "PING", sender: clientId });
+    }
+
+    // CAD Database
+    const sampleCAD = [
+      { name: "Greta Weber", dob: "14/05/1988", dl: "VALID", ins: "EXPIRED", plate: "4UDE91", stolen: "NO", status: "WARRANT ACTIVE (FELONY)", gun: "NO PERMIT" },
+      { name: "Arthur Vance", dob: "14/05/1988", dl: "VALID", ins: "EXPIRED", plate: "BPD-441", stolen: "NO", status: "WARRANT ACTIVE (FELONY)", gun: "NO PERMIT" },
+      { name: "Tyler Mason", dob: "22/11/1995", dl: "SUSPENDED", ins: "VALID", plate: "WX-901", stolen: "REPORTED STOLEN", status: "CLEAN", gun: "CONCEALED PERMIT" },
+      { name: "Sarah Connor", dob: "28/02/1985", dl: "VALID", ins: "VALID", plate: "SC-1984", stolen: "NO", status: "CLEAN", gun: "NONE" },
+      { name: "Damian Cole", dob: "09/09/1991", dl: "FORGED / FAKE", ins: "EXPIRED", plate: "DC-009", stolen: "NO", status: "CLEAN", gun: "NONE" }
+    ];
+
+    function searchCAD() {
+      const q = document.getElementById('cadQuery').value.trim().toLowerCase();
+      const match = sampleCAD.find(c => c.name.toLowerCase().includes(q) || c.plate.toLowerCase().includes(q)) || sampleCAD[0];
+      displayCAD(match);
+    }
+
+    function generateRandomCAD() {
+      const randomItem = sampleCAD[Math.floor(Math.random() * sampleCAD.length)];
+      displayCAD(randomItem);
+    }
+
+    function displayCAD(c) {
+      document.getElementById('cadResult').style.display = 'block';
+      document.getElementById('cadName').innerText = c.name;
+      document.getElementById('cadDOB').innerText = c.dob;
+      document.getElementById('cadDL').innerText = c.dl;
+      document.getElementById('cadIns').innerText = c.ins;
+      document.getElementById('cadPlate').innerText = c.plate;
+      document.getElementById('cadVehStatus').innerText = c.stolen;
+      document.getElementById('cadGun').innerText = c.gun;
+      document.getElementById('cadStatus').innerText = c.status;
+      playChirp(650, 0.08);
+    }
+
+    function importCADToCallout(station) {
+      document.getElementById(station + '_name').value = document.getElementById('cadName').innerText;
+      document.getElementById(station + '_vrm').value = document.getElementById('cadPlate').innerText;
+      
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector('.tab-btn').classList.add('active');
+      document.getElementById('tab-callout').classList.add('active');
+      
+      playChirp(900, 0.1);
+    }
+
+    // Radar & Sobriety
+    function calcSpeed() {
+      const limit = parseInt(document.getElementById('radarLimit').value);
+      const speed = parseInt(document.getElementById('speedSlider').value);
+      document.getElementById('speedValue').innerText = speed + " MPH";
+      const diff = speed - limit;
+      const res = document.getElementById('speedResult');
+
+      if (diff <= 0) {
+        res.style.background = "#064e3b";
+        res.innerText = "WITHIN LEGAL LIMIT — NO ACTION";
+      } else if (diff <= 10) {
+        res.style.background = "#3b82f6";
+        res.innerText = `MINOR SPEEDING (+${diff} MPH): $50 CITATION`;
+      } else if (diff <= 25) {
+        res.style.background = "#f59e0b";
+        res.innerText = `AGGRAVATED SPEEDING (+${diff} MPH): $150 CITATION`;
+      } else {
+        res.style.background = "#ef4444";
+        res.innerText = `RECKLESS DRIVING (+${diff} MPH): MANDATORY ARREST & VEHICLE TOW!`;
+      }
+    }
+
+    function calcBAC() {
+      const bac = (parseInt(document.getElementById('bacSlider').value) / 100).toFixed(2);
+      const drug = document.getElementById('drugWipe').value;
+      document.getElementById('bacText').innerText = bac + "% BAC";
+      const res = document.getElementById('sobrietyResult');
+
+      if (bac >= 0.08 || drug !== 'CLEAN') {
+        res.style.background = "#ef4444";
+        res.style.color = "#fff";
+        res.innerText = `IMPAIRED DRIVER DETECTED! (${bac >= 0.08 ? 'BAC ' + bac + '%' : ''} ${drug !== 'CLEAN' ? 'DRUG: ' + drug : ''}) — MANDATORY ARREST & TOW!`;
+      } else {
+        res.style.background = "#064e3b";
+        res.style.color = "#6ee7b7";
+        res.innerText = "DRIVER SOBER — NO DUI ACTION JUSTIFIED";
+      }
+    }
+
+    // BOLO Board
+    function openBOLOModal() { document.getElementById('boloModal').classList.add('active'); }
+    function closeBOLOModal() { document.getElementById('boloModal').classList.remove('active'); }
+
+    function submitBOLO() {
+      const bolo = {
+        cat: document.getElementById('boloCat').value,
+        title: document.getElementById('boloTitle').value || 'Unidentified Suspect',
+        desc: document.getElementById('boloDesc').value || 'No additional details provided.'
+      };
+      addBOLOCard(bolo);
+      sendRelay({ type: "BOLO", sender: clientId, bolo: bolo });
+      closeBOLOModal();
+      playChirp(500, 0.2);
+    }
+
+    function addBOLOCard(bolo) {
+      const grid = document.getElementById('boloGrid');
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.margin = '0';
+      card.style.borderColor = 'var(--accent-amber)';
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--accent-amber); font-weight: bold;">
+          <span>${bolo.cat}</span>
+          <span>BROADCAST HIT</span>
+        </div>
+        <h3 style="font-size: 15px; margin: 8px 0;">${bolo.title}</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">${bolo.desc}</p>
+        <button class="btn btn-success" style="width: 100%;" onclick="dismissBOLO(this)">Mark Apprehended (+100 SP)</button>
+      `;
+      grid.prepend(card);
+    }
+
+    function dismissBOLO(btn) {
+      btn.closest('.card').remove();
+      playChirp(1000, 0.1);
+      alert('BOLO Closed: Suspect Apprehended! (+100 Shift Points awarded)');
+    }
+
+    // Initial render
+    renderChips('joe');
+    renderChips('ian');
+  </script>
+</body>
+</html>

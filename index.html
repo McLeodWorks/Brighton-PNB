@@ -160,6 +160,7 @@
 
     .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
     .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 
     .form-group { margin-bottom: 12px; }
     .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
@@ -201,6 +202,19 @@
     .chip-tow-badge { background: #78350f; color: #fde68a; border: 1px solid #f59e0b; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 900; }
     .chip-close { cursor: pointer; font-size: 14px; font-weight: bold; margin-left: 4px; }
     .chip-close:hover { color: #fff; }
+
+    .legal-guidance-bar {
+      margin-top: 8px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #090e17;
+      border: 1px solid var(--border-dark);
+    }
 
     .ledger-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
     .ledger-table th, .ledger-table td {
@@ -248,7 +262,7 @@
     .modal-card h3 { font-size: 16px; margin-bottom: 12px; color: var(--accent-cyan); text-transform: uppercase; }
 
     /* Picker Catalog Modal */
-    .catalog-modal { max-width: 760px; display: flex; flex-direction: column; max-height: 88vh; }
+    .catalog-modal { max-width: 780px; display: flex; flex-direction: column; max-height: 88vh; }
     .catalog-search-bar { display: flex; gap: 8px; margin-bottom: 12px; }
     .catalog-filter-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--border-dark); }
     .catalog-filter-btn {
@@ -285,15 +299,31 @@
     .badge-arrest { background: #7f1d1d; color: #fca5a5; }
     .badge-tow { background: #78350f; color: #fde68a; }
 
+    /* Sector Map Grid */
+    .sector-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .sector-card {
+      background: var(--bg-darkest);
+      border: 1px solid var(--border-dark);
+      border-radius: 6px;
+      padding: 12px;
+      position: relative;
+    }
+    .sector-card.has-incident { border-color: var(--accent-amber); background: rgba(245, 158, 11, 0.05); }
+    .sector-title { font-size: 13px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+
     @media print {
       body { background: #fff; color: #000; }
-      header, .battenburg-bar, .tab-bar, .officer-select-bar, .btn, .modal-overlay { display: none !important; }
+      header, .battenburg-bar, .tab-bar, .officer-select-bar, .btn, .modal-overlay, #tab-map, #tab-xbox, #tab-radar, #tab-caution { display: none !important; }
       .container { max-width: 100%; margin: 0; padding: 0; }
       .card { border: 1px solid #000; background: #fff; color: #000; break-inside: avoid; margin-bottom: 15px; }
       .card-title { color: #000; border-bottom: 1px solid #000; }
       .ledger-table th, .ledger-table td { border-color: #000; color: #000; }
       .tab-content { display: block !important; }
-      #tab-xbox, #tab-radar, #tab-caution { display: none !important; }
     }
   </style>
 </head>
@@ -313,10 +343,11 @@
     <div class="header-controls">
       <div class="status-pill" id="syncStatus">
         <div class="status-dot"></div>
-        <span id="syncText">OFFLINE (STANDALONE)</span>
+        <span id="syncText">OFFLINE (LOCAL STORAGE ACTIVE)</span>
       </div>
       <button class="btn btn-primary" onclick="openConnectModal()">🔗 Connect Live Room</button>
-      <button class="btn btn-success" onclick="sendRadioPing()">📡 Audio Ping</button>
+      <button class="btn btn-success" onclick="sendRadioPing()">📡 Airwave PTT</button>
+      <button class="btn btn-danger" onclick="broadcastPanicAlert()">🚨 10-99 ASSISTANCE</button>
       <button class="btn" onclick="window.print()">🖨️ Print PNB</button>
     </div>
   </header>
@@ -329,7 +360,7 @@
       <button class="officer-btn" id="btnIan" onclick="switchOfficer('PC Ian McLeod (3318)')">PC Ian McLeod (3318)</button>
     </div>
     <div style="color: var(--text-muted);">
-      CONDUCT: <strong style="color: var(--accent-green);">100 CP</strong> | REPUTATION: <strong style="color: var(--accent-cyan);">SP ON DUTY</strong>
+      CONDUCT: <strong style="color: var(--accent-green);">100 CP</strong> | REPUTATION: <strong style="color: var(--accent-cyan);" id="headerSP">0 SP EARNED</strong>
     </div>
   </div>
 
@@ -337,6 +368,8 @@
   <nav class="tab-bar">
     <button class="tab-btn active" onclick="showTab(event, 'callout')">🚨 Joint Callout (Joe & Ian)</button>
     <button class="tab-btn" onclick="showTab(event, 'pnb')">📖 PNB Shift Ledger (<span id="ledgerCount">0</span>)</button>
+    <button class="tab-btn" onclick="showTab(event, 'stats')">📊 Shift Debrief & Export</button>
+    <button class="tab-btn" onclick="showTab(event, 'map')">🗺️ Sector Tactical Map</button>
     <button class="tab-btn" onclick="showTab(event, 'cad')">💻 Police CAD & Plate Check</button>
     <button class="tab-btn" onclick="showTab(event, 'radar')">🎯 Radar & Sobriety Lab</button>
     <button class="tab-btn" onclick="showTab(event, 'bolo')">📻 Active BOLOs</button>
@@ -388,6 +421,10 @@
           </div>
 
           <div class="chips-box" id="joe_chips"></div>
+          <div class="legal-guidance-bar" id="joe_guidance">
+            <span>LEGAL ACTION: <span style="color: var(--text-muted);">NONE SELECTED</span></span>
+            <span>TOW STATUS: <span style="color: var(--text-muted);">NOT AUTHORIZED</span></span>
+          </div>
         </div>
 
         <!-- Officer 2: Ian -->
@@ -427,6 +464,10 @@
           </div>
 
           <div class="chips-box" id="ian_chips"></div>
+          <div class="legal-guidance-bar" id="ian_guidance">
+            <span>LEGAL ACTION: <span style="color: var(--text-muted);">NONE SELECTED</span></span>
+            <span>TOW STATUS: <span style="color: var(--text-muted);">NOT AUTHORIZED</span></span>
+          </div>
         </div>
 
       </div>
@@ -444,7 +485,10 @@
       <div class="card">
         <div class="card-title">
           <span>📖 Official Brighton Constabulary Field Ledger</span>
-          <button class="btn btn-danger" onclick="clearLedger()">Clear Shift Entries</button>
+          <div>
+            <button class="btn btn-primary" onclick="exportLedgerJSON()">💾 Backup Data</button>
+            <button class="btn btn-danger" onclick="clearLedger()">Clear Shift Entries</button>
+          </div>
         </div>
         <table class="ledger-table" id="pnbTable">
           <thead>
@@ -466,7 +510,50 @@
       </div>
     </div>
 
-    <!-- 3. POLICE CAD & PLATE CHECK -->
+    <!-- 3. SHIFT DEBRIEF & EXPORT -->
+    <div id="tab-stats" class="tab-content">
+      <div class="grid-4" style="margin-bottom: 20px;">
+        <div class="card" style="text-align: center; margin: 0;">
+          <div class="form-label">Total Stops Logged</div>
+          <h2 id="statStops" style="font-size: 28px; color: var(--accent-cyan); margin-top: 6px;">0</h2>
+        </div>
+        <div class="card" style="text-align: center; margin: 0;">
+          <div class="form-label">Tickets Issued</div>
+          <h2 id="statTickets" style="font-size: 28px; color: var(--accent-blue); margin-top: 6px;">0</h2>
+        </div>
+        <div class="card" style="text-align: center; margin: 0;">
+          <div class="form-label">Custodial Arrests</div>
+          <h2 id="statArrests" style="font-size: 28px; color: var(--accent-red); margin-top: 6px;">0</h2>
+        </div>
+        <div class="card" style="text-align: center; margin: 0;">
+          <div class="form-label">Impounds / Tows</div>
+          <h2 id="statTows" style="font-size: 28px; color: var(--accent-amber); margin-top: 6px;">0</h2>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 Shift Handover & Debrief Summary</div>
+        <div id="shiftSummaryBox" style="font-size: 13px; line-height: 1.8; color: var(--text-main); margin-bottom: 16px;">
+          No operational stops logged for this shift yet.
+        </div>
+        <button class="btn btn-primary" onclick="downloadShiftReport()">📥 Download Plaintext PNB Shift Debrief (.txt)</button>
+      </div>
+    </div>
+
+    <!-- 4. SECTOR TACTICAL MAP -->
+    <div id="tab-map" class="tab-content">
+      <div class="card">
+        <div class="card-title">
+          <span>🗺️ Brighton District Sector Tactical Board</span>
+          <span style="font-size: 11px; color: var(--text-muted);">Syncs live across both stations</span>
+        </div>
+        <div class="sector-grid" id="sectorBoard">
+          <!-- Dynamically populated sectors -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. POLICE CAD & PLATE CHECK -->
     <div id="tab-cad" class="tab-content">
       <div class="card">
         <div class="card-title">💻 Brighton Police CAD Database Search</div>
@@ -497,7 +584,7 @@
       </div>
     </div>
 
-    <!-- 4. RADAR & SOBRIETY LAB -->
+    <!-- 6. RADAR & SOBRIETY LAB -->
     <div id="tab-radar" class="tab-content">
       <div class="grid-2">
         <div class="card">
@@ -551,28 +638,18 @@
       </div>
     </div>
 
-    <!-- 5. ACTIVE BOLOS -->
+    <!-- 7. ACTIVE BOLOS -->
     <div id="tab-bolo" class="tab-content">
       <div class="card">
         <div class="card-title">
           <span>📻 Brighton Police APB & BOLO Broadcasts</span>
           <button class="btn btn-amber" onclick="openBOLOModal()">+ Broadcast New BOLO</button>
         </div>
-        <div class="grid-3" id="boloGrid">
-          <div class="card" style="margin: 0; border-color: var(--accent-amber);">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--accent-amber); font-weight: bold;">
-              <span>STOLEN VEHICLE</span>
-              <span>10-99 ACTIVE</span>
-            </div>
-            <h3 style="font-size: 15px; margin: 8px 0;">Red Cruiser SUV (VRM: LV-426)</h3>
-            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Suspect fled armed with a switchblade knife. Heading toward Melting Pot.</p>
-            <button class="btn btn-success" style="width: 100%;" onclick="dismissBOLO(this)">Mark Apprehended (+100 SP)</button>
-          </div>
-        </div>
+        <div class="grid-3" id="boloGrid"></div>
       </div>
     </div>
 
-    <!-- 6. UK PACE CAUTION -->
+    <!-- 8. UK PACE CAUTION -->
     <div id="tab-caution" class="tab-content">
       <div class="card">
         <div class="card-title">⚖️ Statutory Police Caution & Custody Protections</div>
@@ -596,7 +673,7 @@
       </div>
     </div>
 
-    <!-- 7. XBOX CONTROLLER & CP GUIDE -->
+    <!-- 9. XBOX CONTROLLER & CP GUIDE -->
     <div id="tab-xbox" class="tab-content">
       <div class="grid-2">
         <div class="card">
@@ -721,7 +798,6 @@
   <script>
     // COMPLETE OFFICIAL WIKI OFFENCES DATABASE
     const OFFENCES_DB = [
-      // PARKING VIOLATIONS & TOWS
       { id: "P1", cat: "PARKING", name: "Expired Parking Meter", desc: "Vehicle parked at an expired meter (Red sign). Handicap exempt.", type: "ticket", cost: "$20", tow: false },
       { id: "P2", cat: "PARKING", name: "Expired License Plate", desc: "Vehicle plate registration is past expiration date.", type: "ticket", cost: "$100", tow: true },
       { id: "P3", cat: "PARKING", name: "Parked on Sidewalk", desc: "One or two tires parked over the pedestrian curb.", type: "ticket", cost: "$40", tow: true },
@@ -734,7 +810,6 @@
       { id: "P10", cat: "PARKING", name: "Emergency Access Lane", desc: "Blocking designated emergency response route.", type: "ticket", cost: "$150", tow: true },
       { id: "P11", cat: "PARKING", name: "Street Cleaning Restriction", desc: "Parked during scheduled municipal cleaning hours.", type: "ticket", cost: "$60", tow: true },
 
-      // MOVING & TRAFFIC
       { id: "T1", cat: "MOVING", name: "Speeding (1-10 MPH Over)", desc: "Exceeding posted speed limit by up to 10 MPH.", type: "ticket", cost: "$50", tow: false },
       { id: "T2", cat: "MOVING", name: "Speeding (11-25 MPH Over)", desc: "Aggravated speeding 11 to 25 MPH above limit.", type: "ticket", cost: "$150", tow: false },
       { id: "T3", cat: "MOVING", name: "Ignoring Red Light", desc: "Proceeding through intersection during red signal.", type: "ticket", cost: "$100", tow: false },
@@ -742,7 +817,6 @@
       { id: "T5", cat: "MOVING", name: "Not Using Turn Signal", desc: "Turning or changing lanes without indicator.", type: "ticket", cost: "$35", tow: false },
       { id: "T6", cat: "MOVING", name: "Reckless Driving (26+ MPH Over)", desc: "Dangerous speed exceeding limit by 26+ MPH.", type: "arrest", cost: "ARREST", tow: true },
 
-      // VEHICLE EQUIPMENT & MODS
       { id: "E1", cat: "EQUIPMENT", name: "Broken Headlight at Night", desc: "One or both headlights unlit/broken during darkness.", type: "ticket", cost: "$60", tow: false },
       { id: "E2", cat: "EQUIPMENT", name: "Broken Taillight", desc: "One or both rear taillights damaged or non-functional.", type: "ticket", cost: "$60", tow: false },
       { id: "E3", cat: "EQUIPMENT", name: "Damaged / Broken Windshield", desc: "Shattered or cracked front glass impeding vision.", type: "ticket", cost: "$80", tow: false },
@@ -751,7 +825,6 @@
       { id: "E6", cat: "EQUIPMENT", name: "Excessively Loud Engine / Exhaust", desc: "Modified exhaust exceeding legal noise thresholds.", type: "ticket", cost: "$90", tow: false },
       { id: "E7", cat: "EQUIPMENT", name: "Smoking Tailpipe", desc: "Heavy emissions smoke from vehicle exhaust.", type: "ticket", cost: "$60", tow: false },
 
-      // BACKGROUND CHECKS & DOCUMENT FRAUD
       { id: "D1", cat: "DOCS", name: "Expired Driver's License", desc: "License date is past validity.", type: "ticket", cost: "$100", tow: false },
       { id: "D2", cat: "DOCS", name: "No Valid Insurance", desc: "Vehicle has no current insurance coverage.", type: "ticket", cost: "$150", tow: false },
       { id: "D3", cat: "DOCS", name: "Missing Driver's License", desc: "Driving without ever having been issued a license.", type: "arrest", cost: "ARREST", tow: true },
@@ -764,7 +837,6 @@
       { id: "D10", cat: "DOCS", name: "Expired Visa (Contraband DLC)", desc: "Travelling within Franklin on expired travel visa.", type: "arrest", cost: "ARREST", tow: false },
       { id: "D11", cat: "DOCS", name: "No Visa (Contraband DLC)", desc: "Travelling within Franklin with zero visa status.", type: "arrest", cost: "ARREST", tow: false },
 
-      // MISDEMEANORS & CITIZEN OFFENCES
       { id: "M1", cat: "MISDEMEANOR", name: "Littering", desc: "Dropping garbage or refuse onto street or sidewalk.", type: "ticket", cost: "$25", tow: false },
       { id: "M2", cat: "MISDEMEANOR", name: "Jaywalking", desc: "Crossing street away from designated pedestrian crosswalk.", type: "ticket", cost: "$20", tow: false },
       { id: "M3", cat: "MISDEMEANOR", name: "Public Intoxication / Drinking", desc: "Consuming alcohol in public space with open container in hand.", type: "ticket", cost: "$300", tow: false },
@@ -776,7 +848,6 @@
       { id: "M9", cat: "MISDEMEANOR", name: "Car Theft", desc: "Attempting to break into or steal a stationary vehicle.", type: "arrest", cost: "ARREST", tow: false },
       { id: "M10", cat: "MISDEMEANOR", name: "Fleeing Police / Resisting", desc: "Running or fleeing in vehicle when held for detainment.", type: "arrest", cost: "ARREST", tow: true },
 
-      // DUI IMPAIRMENT (ALL 8 WIKI SUBSTANCES)
       { id: "DUI1", cat: "DUI", name: "DUI: Alcohol (BAC ≥ 0.08% / Trucks > 0.00%)", desc: "Operating motor vehicle while intoxicated by alcohol.", type: "arrest", cost: "ARREST", tow: true },
       { id: "DUI2", cat: "DUI", name: "DUI: Cannabis (THC Positive)", desc: "Impaired driving with positive saliva drug test for THC.", type: "arrest", cost: "ARREST", tow: true },
       { id: "DUI3", cat: "DUI", name: "DUI: Cocaine Positive", desc: "Operating motor vehicle under the influence of cocaine.", type: "arrest", cost: "ARREST", tow: true },
@@ -786,7 +857,6 @@
       { id: "DUI7", cat: "DUI", name: "DUI: LSD Positive", desc: "Operating motor vehicle under the influence of LSD.", type: "arrest", cost: "ARREST", tow: true },
       { id: "DUI8", cat: "DUI", name: "DUI: MDMA Positive", desc: "Operating motor vehicle under the influence of ecstasy/MDMA.", type: "arrest", cost: "ARREST", tow: true },
 
-      // WEAPONS & NARCOTICS POSSESSION
       { id: "W1", cat: "WEAPONS", name: "Carrying Gun Without Permit", desc: "Possessing firearm without valid gun permit endorsement on ID.", type: "arrest", cost: "ARREST", tow: false },
       { id: "W2", cat: "WEAPONS", name: "Brass Knuckles Without CCW Permit", desc: "Carrying brass knuckles without concealed carry weapon permit.", type: "arrest", cost: "ARREST", tow: false },
       { id: "W3", cat: "WEAPONS", name: "Ninja Stars Without CCW Permit", desc: "Possessing shuriken/ninja stars without CCW permit.", type: "arrest", cost: "ARREST", tow: false },
@@ -797,31 +867,77 @@
       { id: "W8", cat: "WEAPONS", name: "Possession of Narcotics (>1oz Cannabis / Any Hard Drugs)", desc: "Possessing controlled narcotic substances.", type: "arrest", cost: "ARREST", tow: false },
       { id: "W9", cat: "WEAPONS", name: "Selling Narcotics (Drug Dealing)", desc: "Unlawful street distribution or sale of narcotics.", type: "arrest", cost: "ARREST", tow: true },
 
-      // MAJOR FELONIES
       { id: "F1", cat: "FELONY", name: "Aggravated Assault", desc: "Physical attack on an individual causing serious bodily harm.", type: "arrest", cost: "ARREST", tow: false },
       { id: "F2", cat: "FELONY", name: "Domestic Violence", desc: "Physical assault against a partner/family member.", type: "arrest", cost: "ARREST", tow: false },
       { id: "F3", cat: "FELONY", name: "Assault on Police Officer", desc: "Physical violence or battery against a law enforcement officer.", type: "arrest", cost: "ARREST", tow: false },
       { id: "F4", cat: "FELONY", name: "Attempted Murder", desc: "Deliberate attempt to end the life of an officer or citizen.", type: "arrest", cost: "ARREST", tow: false },
 
-      // HIGHWAY PATROL & COMMERCIAL VEHICLE EXPANSION
       { id: "DLC1", cat: "DLC", name: "Overloaded / Overweight Vehicle", desc: "Commercial vehicle weight exceeds highway scales limit.", type: "ticket", cost: "$500", tow: true },
       { id: "DLC2", cat: "DLC", name: "Transporting Stolen Goods", desc: "Hauling reported stolen cargo in commercial transport.", type: "arrest", cost: "ARREST", tow: true },
       { id: "DLC3", cat: "DLC", name: "Transporting Counterfeit Articles", desc: "Hauling forged/counterfeit apparel or goods.", type: "arrest", cost: "ARREST", tow: true },
       { id: "DLC4", cat: "DLC", name: "Cargo Contraband Smuggling", desc: "Smuggling illegal narcotics, exotic goods, or weapons in truck.", type: "arrest", cost: "ARREST", tow: true }
     ];
 
+    const SECTORS = [
+      "Downtown — Central Business",
+      "Melting Pot — Historic Quarter",
+      "Brickston — Residential North",
+      "North Point — Harbor & Industrial",
+      "Chester — Suburbia South",
+      "Highways & Commercial Scale Artery"
+    ];
+
+    let sectorStatus = {};
     let activeOfficer = "PC Joe McLeod (4412)";
     let chips = { joe: [], ian: [] };
     let activePickerTarget = "joe";
     let activeFilterCategory = "ALL";
     let submittedReports = [];
+    let boloItems = [];
     let audioCtx = null;
     let ws = null;
     let currentRoom = "";
     let clientId = "user_" + Math.random().toString(36).substring(2, 9);
 
+    // ADVANCED AUDIO ENGINE (AIRWAVE TETRA SYNTHESIS)
     function initAudio() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function playAirwaveBeep() {
+      try {
+        initAudio();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(900, now);
+        osc.frequency.setValueAtTime(1400, now + 0.05);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.12);
+      } catch (e) {}
+    }
+
+    function playUrgentSiren() {
+      try {
+        initAudio();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(450, now);
+        osc.frequency.linearRampToValueAtTime(900, now + 0.2);
+        osc.frequency.linearRampToValueAtTime(450, now + 0.4);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.45);
+      } catch (e) {}
     }
 
     function playChirp(freq = 800, dur = 0.08) {
@@ -839,6 +955,45 @@
       } catch (e) {}
     }
 
+    // PERSISTENCE (LOCALSTORAGE)
+    function saveToStorage() {
+      try {
+        localStorage.setItem("bpd_reports", JSON.stringify(submittedReports));
+        localStorage.setItem("bpd_bolos", JSON.stringify(boloItems));
+        localStorage.setItem("bpd_sectors", JSON.stringify(sectorStatus));
+      } catch (e) {}
+    }
+
+    function loadFromStorage() {
+      try {
+        const reps = localStorage.getItem("bpd_reports");
+        if (reps) {
+          submittedReports = JSON.parse(reps);
+          const body = document.getElementById('ledgerBody');
+          body.innerHTML = '';
+          submittedReports.forEach(r => appendReportToTable(r));
+          document.getElementById('ledgerCount').innerText = submittedReports.length;
+        }
+        const b = localStorage.getItem("bpd_bolos");
+        if (b) {
+          boloItems = JSON.parse(b);
+          renderBOLOGrid();
+        } else {
+          boloItems = [{
+            id: "b_def",
+            cat: "STOLEN VEHICLE",
+            title: "Red Cruiser SUV (VRM: LV-426)",
+            desc: "Suspect fled armed with a switchblade knife. Heading toward Melting Pot."
+          }];
+          renderBOLOGrid();
+        }
+        const s = localStorage.getItem("bpd_sectors");
+        if (s) sectorStatus = JSON.parse(s);
+        renderSectorBoard();
+        recalculateStats();
+      } catch (e) {}
+    }
+
     function switchOfficer(name) {
       activeOfficer = name;
       document.getElementById('btnJoe').classList.toggle('active', name.includes('4412'));
@@ -851,6 +1006,7 @@
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       e.target.classList.add('active');
       document.getElementById('tab-' + id).classList.add('active');
+      if (id === 'stats') recalculateStats();
     }
 
     // OFFENCE PICKER MODAL LOGIC
@@ -912,7 +1068,6 @@
           : `<span class="badge-tag badge-ticket">TICKET (${item.cost})</span>`;
         const badgeTow = item.tow ? '<span class="badge-tag badge-tow">TOW JUSTIFIED</span>' : '';
 
-        // Check if already selected in target station
         const isSelected = chips[activePickerTarget].some(c => c.name === item.name);
 
         row.innerHTML = `
@@ -961,11 +1116,18 @@
 
     function renderChips(station) {
       const box = document.getElementById(station + '_chips');
+      const guidance = document.getElementById(station + '_guidance');
       box.innerHTML = '';
+
       if (chips[station].length === 0) {
         box.innerHTML = '<span style="color: var(--text-muted); font-size: 11px; align-self: center;">No citations or arrest charges added yet.</span>';
+        guidance.innerHTML = `
+          <span>LEGAL ACTION: <span style="color: var(--text-muted);">NONE SELECTED</span></span>
+          <span>TOW STATUS: <span style="color: var(--text-muted);">NOT AUTHORIZED</span></span>
+        `;
         return;
       }
+
       chips[station].forEach((c, idx) => {
         const span = document.createElement('span');
         let cls = c.type === 'arrest' ? 'chip-arrest' : 'chip-ticket';
@@ -977,6 +1139,14 @@
         `;
         box.appendChild(span);
       });
+
+      const hasArrest = chips[station].some(c => c.type === 'arrest');
+      const hasTow = chips[station].some(c => c.tow);
+
+      guidance.innerHTML = `
+        <span>LEGAL ACTION: ${hasArrest ? '<strong style="color: var(--accent-red);">[MANDATORY ARREST]</strong>' : '<strong style="color: var(--accent-blue);">[CITATION / FINE ONLY]</strong>'}</span>
+        <span>TOW STATUS: ${hasTow ? '<strong style="color: var(--accent-amber);">[TOW AUTHORIZED & JUSTIFIED]</strong>' : '<strong style="color: var(--text-muted);">[DO NOT TOW (-CP PENALTY)]</strong>'}</span>
+      `;
     }
 
     // REPORT SUBMISSION & PNB SYNC
@@ -1004,13 +1174,13 @@
         hasArrest: chips[station].some(c => c.type === 'arrest')
       };
 
-      // Add to local ledger
-      renderNewReport(report);
+      appendReportToTable(report);
+      submittedReports.push(report);
+      document.getElementById('ledgerCount').innerText = submittedReports.length;
+      saveToStorage();
 
-      // Broadcast to partner over WebSocket
       sendRelay({ type: "NEW_REPORT", sender: clientId, report: report });
 
-      // Reset that officer's station form
       document.getElementById(station + '_name').value = '';
       document.getElementById(station + '_vrm').value = '';
       document.getElementById(station + '_statement').value = '';
@@ -1018,8 +1188,8 @@
       chips[station] = [];
       renderChips(station);
 
-      playChirp(900, 0.15);
-      alert(`${officerName}'s Report Filed & Submitted to Shared Ledger!`);
+      playAirwaveBeep();
+      recalculateStats();
     }
 
     function compileBothToLedger() {
@@ -1034,15 +1204,12 @@
       if (ianName || chips.ian.length > 0) fileSingleOfficer('ian');
     }
 
-    function renderNewReport(rep) {
-      submittedReports.push(rep);
-      document.getElementById('ledgerCount').innerText = submittedReports.length;
-
+    function appendReportToTable(rep) {
       const body = document.getElementById('ledgerBody');
       const row = document.createElement('tr');
       const towBadge = rep.hasTow ? '<strong style="color: var(--accent-amber);">YES (TOW)</strong>' : 'NO';
       const statusBadge = rep.hasArrest ? '<span class="chip chip-arrest" style="font-size: 10px;">ARREST</span>' : '<span class="chip chip-ticket" style="font-size: 10px;">CITED</span>';
-      const chargesList = rep.chips.map(c => c.name).join(', ') || 'Field Investigation';
+      const chargesList = rep.chips.map(c => c.name).join(', ') || 'Field Stop & Check';
 
       row.innerHTML = `
         <td>${rep.time}</td>
@@ -1120,7 +1287,117 @@
         document.getElementById('ledgerBody').innerHTML = '';
         submittedReports = [];
         document.getElementById('ledgerCount').innerText = '0';
+        saveToStorage();
+        recalculateStats();
       }
+    }
+
+    // STATS & SUMMARY EXPORT
+    function recalculateStats() {
+      const stops = submittedReports.length;
+      let tickets = 0;
+      let arrests = 0;
+      let tows = 0;
+      let spEarned = stops * 150;
+
+      submittedReports.forEach(r => {
+        if (r.hasArrest) arrests++;
+        else if (r.chips.length > 0) tickets++;
+        if (r.hasTow) tows++;
+      });
+
+      document.getElementById('statStops').innerText = stops;
+      document.getElementById('statTickets').innerText = tickets;
+      document.getElementById('statArrests').innerText = arrests;
+      document.getElementById('statTows').innerText = tows;
+      document.getElementById('headerSP').innerText = `${spEarned} SP EARNED`;
+
+      const summary = document.getElementById('shiftSummaryBox');
+      if (stops === 0) {
+        summary.innerHTML = "No operational stops logged for this shift yet.";
+        return;
+      }
+
+      summary.innerHTML = `
+        <strong>Shift Status:</strong> Active Duty Patrol Complete.<br>
+        <strong>Total Incident Reports:</strong> ${stops} stops logged.<br>
+        <strong>Legal Enforcements:</strong> ${tickets} formal citations issued, ${arrests} suspects taken into custody, and ${tows} vehicle impounds authorized.<br>
+        <strong>Estimated Performance Points:</strong> ~${spEarned} Shift Points (+100 Conduct Score maintained).
+      `;
+    }
+
+    function exportLedgerJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(submittedReports, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `BPD_Shift_Ledger_${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function downloadShiftReport() {
+      if (submittedReports.length === 0) return alert("No reports in ledger to export!");
+      let txt = `=====================================================\n`;
+      txt += `BRIGHTON CONSTABULARY — PNB SHIFT DEBRIEF REPORT\n`;
+      txt += `Date: ${new Date().toLocaleDateString()} | Units: PC Joe McLeod & PC Ian McLeod\n`;
+      txt += `=====================================================\n\n`;
+
+      submittedReports.forEach((r, idx) => {
+        txt += `[INCIDENT #${idx + 1}] Time: ${r.time} | Logged By: ${r.officer}\n`;
+        txt += `Subject: ${r.subject} | VRM: ${r.vrm}\n`;
+        txt += `Statement: ${r.statement}\n`;
+        txt += `Witness: ${r.witness}\n`;
+        txt += `Charges: ${r.chips.map(c => c.name + " (" + c.cost + ")").join(", ") || "None"}\n`;
+        txt += `Tow Impound: ${r.hasTow ? "YES" : "NO"} | Custody: ${r.hasArrest ? "ARREST" : "CITED"}\n`;
+        txt += `-----------------------------------------------------\n`;
+      });
+
+      const blob = new Blob([txt], { type: "text/plain" });
+      const anchor = document.createElement('a');
+      anchor.href = URL.createObjectURL(blob);
+      anchor.download = `BPD_PNB_Debrief_${Date.now()}.txt`;
+      anchor.click();
+    }
+
+    // TACTICAL SECTOR MAP
+    function renderSectorBoard() {
+      const container = document.getElementById('sectorBoard');
+      container.innerHTML = '';
+      SECTORS.forEach(name => {
+        const status = sectorStatus[name] || "CLEAR";
+        const hasIncident = status !== "CLEAR";
+        const div = document.createElement('div');
+        div.className = `sector-card ${hasIncident ? 'has-incident' : ''}`;
+        div.innerHTML = `
+          <div class="sector-title">
+            <span>${name}</span>
+            <span style="font-size: 10px; color: ${hasIncident ? 'var(--accent-amber)' : 'var(--accent-green)'};">${status}</span>
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+            <button class="btn btn-primary" style="padding: 2px 6px; font-size: 10px;" onclick="updateSector('${name}', 'TRAFFIC STOP')">Stop</button>
+            <button class="btn btn-amber" style="padding: 2px 6px; font-size: 10px;" onclick="updateSector('${name}', 'COLLISION')">Crash</button>
+            <button class="btn btn-danger" style="padding: 2px 6px; font-size: 10px;" onclick="updateSector('${name}', 'PURSUIT / BOLO')">Pursuit</button>
+            <button class="btn" style="padding: 2px 6px; font-size: 10px;" onclick="updateSector('${name}', 'CLEAR')">Clear</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateSector(sector, val) {
+      sectorStatus[sector] = val;
+      renderSectorBoard();
+      saveToStorage();
+      sendRelay({ type: "SECTOR_UPDATE", sender: clientId, sector, val });
+      playChirp(700, 0.05);
+    }
+
+    // EMERGENCY 10-99 ASSISTANCE
+    function broadcastPanicAlert() {
+      playUrgentSiren();
+      sendRelay({ type: "PANIC_ALERT", sender: clientId, officer: activeOfficer });
+      alert(`🚨 10-99 EMERGENCY BROADCAST TRANSMITTED ACROSS STATIONS!`);
     }
 
     // NETWORKING (WEBSOCKET RELAY)
@@ -1139,7 +1416,7 @@
         pill.className = 'status-pill online';
         document.getElementById('syncText').innerText = `ONLINE (${room.toUpperCase()})`;
         closeConnectModal();
-        playChirp(880, 0.15);
+        playAirwaveBeep();
       };
 
       ws.onmessage = (event) => {
@@ -1151,13 +1428,27 @@
           if (payload.sender === clientId) return;
 
           if (payload.type === "PING") {
-            playChirp(880, 0.2);
+            playAirwaveBeep();
+          } else if (payload.type === "PANIC_ALERT") {
+            playUrgentSiren();
+            alert(`🚨 URGENT CODE 3 / 10-99: ${payload.officer} REQUIRES IMMEDIATE BACKUP!`);
           } else if (payload.type === "BOLO") {
-            addBOLOCard(payload.bolo);
-            playChirp(500, 0.2);
+            boloItems.unshift(payload.bolo);
+            renderBOLOGrid();
+            saveToStorage();
+            playUrgentSiren();
+          } else if (payload.type === "SECTOR_UPDATE") {
+            sectorStatus[payload.sector] = payload.val;
+            renderSectorBoard();
+            saveToStorage();
+            playChirp(700, 0.05);
           } else if (payload.type === "NEW_REPORT") {
-            renderNewReport(payload.report);
-            playChirp(900, 0.15);
+            submittedReports.unshift(payload.report);
+            appendReportToTable(payload.report);
+            document.getElementById('ledgerCount').innerText = submittedReports.length;
+            saveToStorage();
+            recalculateStats();
+            playAirwaveBeep();
           }
         } catch (e) {}
       };
@@ -1168,7 +1459,7 @@
 
       ws.onclose = () => {
         document.getElementById('syncStatus').className = 'status-pill';
-        document.getElementById('syncText').innerText = "DISCONNECTED";
+        document.getElementById('syncText').innerText = "OFFLINE (LOCAL STORAGE ACTIVE)";
       };
     }
 
@@ -1181,7 +1472,7 @@
     }
 
     function sendRadioPing() {
-      playChirp(880, 0.1);
+      playAirwaveBeep();
       sendRelay({ type: "PING", sender: clientId });
     }
 
@@ -1276,41 +1567,50 @@
 
     function submitBOLO() {
       const bolo = {
+        id: "b_" + Date.now(),
         cat: document.getElementById('boloCat').value,
         title: document.getElementById('boloTitle').value || 'Unidentified Suspect',
         desc: document.getElementById('boloDesc').value || 'No additional details provided.'
       };
-      addBOLOCard(bolo);
+      boloItems.unshift(bolo);
+      renderBOLOGrid();
+      saveToStorage();
       sendRelay({ type: "BOLO", sender: clientId, bolo: bolo });
       closeBOLOModal();
-      playChirp(500, 0.2);
+      playUrgentSiren();
     }
 
-    function addBOLOCard(bolo) {
+    function renderBOLOGrid() {
       const grid = document.getElementById('boloGrid');
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.style.margin = '0';
-      card.style.borderColor = 'var(--accent-amber)';
-      card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--accent-amber); font-weight: bold;">
-          <span>${bolo.cat}</span>
-          <span>BROADCAST HIT</span>
-        </div>
-        <h3 style="font-size: 15px; margin: 8px 0;">${bolo.title}</h3>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">${bolo.desc}</p>
-        <button class="btn btn-success" style="width: 100%;" onclick="dismissBOLO(this)">Mark Apprehended (+100 SP)</button>
-      `;
-      grid.prepend(card);
+      grid.innerHTML = '';
+      boloItems.forEach((b, idx) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.margin = '0';
+        card.style.borderColor = 'var(--accent-amber)';
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--accent-amber); font-weight: bold;">
+            <span>${b.cat}</span>
+            <span>BROADCAST HIT</span>
+          </div>
+          <h3 style="font-size: 15px; margin: 8px 0;">${b.title}</h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">${b.desc}</p>
+          <button class="btn btn-success" style="width: 100%;" onclick="dismissBOLO(${idx})">Mark Apprehended (+100 SP)</button>
+        `;
+        grid.appendChild(card);
+      });
     }
 
-    function dismissBOLO(btn) {
-      btn.closest('.card').remove();
-      playChirp(1000, 0.1);
+    function dismissBOLO(idx) {
+      boloItems.splice(idx, 1);
+      renderBOLOGrid();
+      saveToStorage();
+      playAirwaveBeep();
       alert('BOLO Closed: Suspect Apprehended! (+100 Shift Points awarded)');
     }
 
-    // Initial render
+    // Startup
+    loadFromStorage();
     renderChips('joe');
     renderChips('ian');
   </script>
